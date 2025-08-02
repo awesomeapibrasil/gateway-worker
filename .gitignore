@@ -26,7 +26,68 @@ go.work.sum
 
 # env file
 .env
+.env.local
+.env.production
+
+# Build directories
+bin/
+dist/
+build/
+
+# Generated protobuf files
+pkg/proto/*.pb.go
+pkg/proto/*_grpc.pb.go
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Certificate files (in development)
+*.pem
+*.crt
+*.key
+*.p12
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+tmp/
+temp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Docker volumes
+docker-volumes/
+
+# Local configuration overrides
+config/local.yaml
+config/development.yaml
+config/production.yaml
+
+# Test artifacts
+testdata/output/
+test-results/
