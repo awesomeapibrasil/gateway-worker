@@ -4,7 +4,6 @@ package certificate
 
 import (
 	"context"
-	"crypto/x509"
 	"time"
 )
 
