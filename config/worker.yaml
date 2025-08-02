@@ -1,0 +1,199 @@
+# Gateway Worker Configuration
+# Based on WORKER-PURPOSE.md specifications
+
+# Server Configuration
+server:
+  grpc_port: 8080
+  http_port: 8081
+  shutdown_timeout: 30s
+  
+# gRPC Configuration
+grpc:
+  max_recv_msg_size: 4194304 # 4MB
+  max_send_msg_size: 4194304 # 4MB
+  connection_timeout: 10s
+  keepalive:
+    time: 30s
+    timeout: 5s
+    permit_without_stream: true
+  
+# TLS Configuration
+tls:
+  enabled: true
+  cert_file: /etc/ssl/certs/worker.crt
+  key_file: /etc/ssl/private/worker.key
+  ca_file: /etc/ssl/certs/ca.crt
+  mtls_enabled: true
+
+# Job Queue Configuration
+queue:
+  workers: 5
+  buffer_size: 1000
+  retry_attempts: 3
+  retry_delay: 30s
+
+# Certificate Management Configuration
+certificate:
+  acme:
+    directory_url: https://acme-v02.api.letsencrypt.org/directory
+    email: admin@example.com
+    key_type: EC256
+  storage:
+    type: file # or "database"
+    path: /var/lib/worker/certificates
+  monitoring:
+    check_interval: 24h
+    renewal_threshold: 30d
+    alert_threshold: 7d
+  distribution:
+    timeout: 30s
+    retry_attempts: 3
+
+# Configuration Management
+config:
+  storage:
+    type: database
+    connection_string: postgres://user:pass@localhost/worker_db
+  validation:
+    enabled: true
+    timeout: 10s
+  versioning:
+    enabled: true
+    retention_count: 10
+
+# Log Processing Configuration
+log:
+  aggregation:
+    buffer_size: 10000
+    flush_interval: 30s
+  processing:
+    workers: 3
+    batch_size: 1000
+  archival:
+    enabled: true
+    retention_days: 90
+    compression: true
+    storage_path: /var/lib/worker/logs
+
+# Analytics Configuration
+analytics:
+  collection_interval: 1m
+  aggregation_interval: 5m
+  retention_period: 365d
+  metrics:
+    - request_count
+    - response_time
+    - error_rate
+    - throughput
+  
+# Database Configuration
+database:
+  primary:
+    type: postgres
+    host: localhost
+    port: 5432
+    database: worker_db
+    username: worker_user
+    password: worker_pass
+    max_connections: 20
+    max_idle_connections: 5
+    connection_lifetime: 1h
+  
+  maintenance:
+    enabled: true
+    schedule: "0 2 * * *" # Daily at 2 AM
+    cleanup:
+      enabled: true
+      retention_days: 90
+    archival:
+      enabled: true
+      batch_size: 10000
+    backup:
+      enabled: true
+      retention_days: 30
+      compression: true
+
+# Integration Configuration
+integration:
+  external_apis:
+    timeout: 30s
+    retry_attempts: 3
+    rate_limit: 100 # requests per minute
+  
+  notifications:
+    email:
+      enabled: true
+      smtp_server: smtp.example.com
+      smtp_port: 587
+      username: notifications@example.com
+      password: smtp_password
+    slack:
+      enabled: false
+      webhook_url: ""
+    webhook:
+      enabled: true
+      endpoints: []
+  
+  security_feeds:
+    enabled: true
+    update_interval: 1h
+    feeds:
+      - name: threat_intelligence
+        url: https://feeds.example.com/threats.json
+        type: json
+      - name: ip_reputation
+        url: https://feeds.example.com/reputation.txt
+        type: text
+
+# Monitoring Configuration
+monitoring:
+  health_check:
+    interval: 30s
+    timeout: 5s
+  
+  metrics:
+    enabled: true
+    port: 9090
+    path: /metrics
+  
+  logging:
+    level: info
+    format: json
+    output: stdout
+    
+  tracing:
+    enabled: false
+    endpoint: http://jaeger:14268/api/traces
+
+# Security Configuration
+security:
+  api_keys:
+    enabled: true
+    header_name: X-API-Key
+  
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 1000
+    burst: 100
+  
+  cors:
+    enabled: true
+    allowed_origins: ["*"]
+    allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+    allowed_headers: ["*"]
+
+# Gateway Communication Configuration
+gateway:
+  instances:
+    discovery:
+      type: static # or "consul", "kubernetes"
+      endpoints:
+        - gateway-1:8080
+        - gateway-2:8080
+        - gateway-3:8080
+  
+  communication:
+    protocol: grpc
+    tls_enabled: true
+    timeout: 10s
+    keepalive: 30s

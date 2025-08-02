@@ -1,0 +1,160 @@
+syntax = "proto3";
+
+package gateway_worker;
+
+option go_package = "github.com/awesomeapibrasil/gateway-worker/pkg/proto";
+
+// Gateway-Worker Communication Service
+// Based on WORKER-PURPOSE.md specifications
+service GatewayWorkerService {
+  // Certificate Management
+  rpc UpdateCertificate(UpdateCertificateRequest) returns (UpdateCertificateResponse);
+  rpc GetCertificateStatus(GetCertificateStatusRequest) returns (GetCertificateStatusResponse);
+  rpc DeployTemporaryCertificate(DeployTemporaryCertificateRequest) returns (DeployTemporaryCertificateResponse);
+  
+  // Configuration Management
+  rpc UpdateConfiguration(UpdateConfigurationRequest) returns (UpdateConfigurationResponse);
+  rpc GetConfiguration(GetConfigurationRequest) returns (GetConfigurationResponse);
+  rpc UpdateWAFRules(UpdateWAFRulesRequest) returns (UpdateWAFRulesResponse);
+  
+  // Health and Status
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+  rpc GetWorkerStatus(GetWorkerStatusRequest) returns (GetWorkerStatusResponse);
+  
+  // Job Management
+  rpc SubmitJob(SubmitJobRequest) returns (SubmitJobResponse);
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
+}
+
+// Certificate Management Messages
+message UpdateCertificateRequest {
+  string domain = 1;
+  bytes certificate_data = 2;
+  bytes private_key = 3;
+  int64 expiry_timestamp = 4;
+  string certificate_type = 5; // "production" or "temporary"
+}
+
+message UpdateCertificateResponse {
+  bool success = 1;
+  string message = 2;
+  string certificate_id = 3;
+}
+
+message GetCertificateStatusRequest {
+  string domain = 1;
+}
+
+message GetCertificateStatusResponse {
+  string status = 1; // "valid", "expiring", "expired", "renewing"
+  int64 expiry_timestamp = 2;
+  string certificate_type = 3;
+  string message = 4;
+}
+
+message DeployTemporaryCertificateRequest {
+  string domain = 1;
+  string reason = 2; // Why temporary certificate is needed
+  int32 validity_days = 3;
+}
+
+message DeployTemporaryCertificateResponse {
+  bool success = 1;
+  string message = 2;
+  bytes certificate_data = 3;
+  bytes private_key = 4;
+  int64 expiry_timestamp = 5;
+}
+
+// Configuration Management Messages
+message UpdateConfigurationRequest {
+  string config_type = 1; // "waf", "routing", "backend", "security"
+  bytes config_data = 2;
+  string version = 3;
+  bool validate_only = 4;
+}
+
+message UpdateConfigurationResponse {
+  bool success = 1;
+  string message = 2;
+  string config_version = 3;
+  repeated string validation_errors = 4;
+}
+
+message GetConfigurationRequest {
+  string config_type = 1;
+  string version = 2; // Optional, latest if not specified
+}
+
+message GetConfigurationResponse {
+  bytes config_data = 1;
+  string version = 2;
+  int64 last_updated = 3;
+}
+
+message UpdateWAFRulesRequest {
+  repeated WAFRule rules = 1;
+  bool emergency_deployment = 2;
+}
+
+message UpdateWAFRulesResponse {
+  bool success = 1;
+  string message = 2;
+  repeated string rule_ids = 3;
+}
+
+message WAFRule {
+  string id = 1;
+  string name = 2;
+  string pattern = 3;
+  string action = 4; // "block", "log", "rate_limit"
+  int32 priority = 5;
+  bool enabled = 6;
+}
+
+// Health and Status Messages
+message HealthCheckRequest {
+  string service_name = 1;
+}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string status = 2;
+  map<string, string> details = 3;
+}
+
+message GetWorkerStatusRequest {}
+
+message GetWorkerStatusResponse {
+  string status = 1; // "running", "degraded", "unhealthy"
+  int32 active_jobs = 2;
+  int32 queued_jobs = 3;
+  int64 uptime_seconds = 4;
+  map<string, string> module_status = 5;
+}
+
+// Job Management Messages
+message SubmitJobRequest {
+  string job_type = 1;
+  map<string, string> payload = 2;
+  int32 priority = 3;
+  int32 max_retries = 4;
+}
+
+message SubmitJobResponse {
+  bool success = 1;
+  string job_id = 2;
+  string message = 3;
+}
+
+message GetJobStatusRequest {
+  string job_id = 1;
+}
+
+message GetJobStatusResponse {
+  string status = 1; // "queued", "running", "completed", "failed"
+  string message = 2;
+  int32 retry_count = 3;
+  int64 created_timestamp = 4;
+  int64 completed_timestamp = 5;
+}
